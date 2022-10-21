@@ -2,15 +2,17 @@
 
 This library allows editors to create URLs to a Content Cloud instance that return arbitrary content data, either in JSON or HTML.
 
-Using the the default implementation, editors can specify a query in a SQL-like syntax. This will execute against the repository and return JSON. Optionally, they can provide a Liquid template. This will be applied to the results of the query, and return an HTML fragment.
+Using the default implementation, editors can specify a query in a SQL-like syntax. This will execute against the repository and return JSON. Optionally, they can provide a Liquid template. This will be applied to the results of the query, and the endpoint will return an HTML fragment.
 
 ## Query Syntax
 
-The query processing is abstracted to a service called `IQueryProcessor`. It sikmply takes in a string representing a query and returns an object of data.
+The query processing is abstracted to a service called `IQueryProcessor`. It skmply takes in a string representing a query and returns an object of data.
 
-Key principle: a string turns into data. How this actually happens is immaterial.
+Key principle: _a string turns into data_. How this actually happens is immaterial. Writing a new query processor and plugging it in shouldn't be hard.
 
-In the default implementation, a query syntax called "TreeQL" is used. This is a SQL-like syntax for querying trees of data. It's built on a parsing library called Parlot. Parsing a string of TreeQL returns a TreeQuery object. The `TreeQLProcessor` then does some (really inefficient) LINQ to retrieve content.
+(TODO: Set it up as a DI'd service. I was lazy and just wrote it as a dynamic function.)
+
+In the default implementation, a query syntax called "TreeQL" is used. This is a SQL-like syntax for querying trees of data. (I originally wrote this for something other than Opti. The basic structure of a tree-based query is pretty universal.) It's built on a parsing library called Parlot. Parsing a string of TreeQL returns a TreeQuery object. The `TreeQLProcessor` then does some (really, really inefficient) LINQ to retrieve content.
 
 Basic format:
 
@@ -22,7 +24,7 @@ SELECT [scope] of [target]
   LIMIT [#]
 ```
 
-At the moment, the implementation is very limited. `WHERE` claused will parse, but not be searched. The only fields that can be ordered on are `date` (`IVersionable.StartPublish`) and `name`.
+At the moment, the implementation is very limited. `WHERE` clauses will parse, but not be searched. The only fields that can be ordered on are `date` (`IVersionable.StartPublish`) and `name`. Over time, I'll expand support for all the features of the query object. 
 
 Example:
 
@@ -35,6 +37,12 @@ SELECT children OF /blog/
 That will return the latest three blog posts.
 
 (TODO: I want to provide other `IQueryProcessors`, like GraphQL. All a query processor needs to do is return data from a string.)
+
+(MEANING: Don't @ me with stuff like, "Why aren't we using GraphQL..." I get it. But, as I noted above, a query is just a service that returns data from a string. How you do that is up to you.)
+
+(A PROMISE: Someday, I will write `ISamuelLJacksonQueryProcessor`, which with you can write queries like: `gimme my muthaf*cking content from that muthaf*cking repository!!!` I might be joking, but again with the core point: _a string returns data_. Don't over-think this.)
+
+## Content Labels
 
 To avoid the vagaries involved with paths, a `ContentLabel` string property can be added to your model. This can be used in queries to identify a target regardless of location:
 
