@@ -18,29 +18,30 @@ Basic format:
 
 ```
 SELECT [scope] of [target]
-  WHERE [field] [=|<>|contains] [value]
+  WHERE [field] [=|<>|contains] [value] [and|or] [field] [=|<>|contains] [value]
   ORDER BY [value] [direction]
   SKIP [#]
   LIMIT [#]
 ```
 
-At the moment, the implementation is very limited. `WHERE` clauses will parse, but not be searched. The only fields that can be ordered on are `date` (`IVersionable.StartPublish`) and `name`. Over time, I'll expand support for all the features of the query object. 
+At the moment, the implementation is limited. The only fields that can be ordered on are `date` (`IVersionable.StartPublish`) and `name`. Over time, I'll expand support for all the features of the query object. 
 
 Example:
 
 ```
 SELECT children OF /blog/
+  WHERE name CONTAINS "bears"
   ORDER BY date DESC
   LIMIT 3
 ```
 
-That will return the latest three blog posts.
+That will return the latest three blog posts with the string "bears" in the title, order reverse chronologically.
 
 (TODO: I want to provide other `IQueryProcessors`, like GraphQL. All a query processor needs to do is return data from a string.)
 
-(MEANING: Don't @ me with stuff like, "Why aren't we using GraphQL..." I get it. But, as I noted above, a query is just a service that returns data from a string. How you do that is up to you.)
+(MEANING: Don't @ me with stuff like, "Yeah, but aren't we using GraphQL..." _I get it._ But, as I noted above, a query is just a service that returns data from a string. How you do that is up to you. If you want GraphQL, then write an `IQueryProcessor` for it.)
 
-(A PROMISE: Someday, I will write `ISamuelLJacksonQueryProcessor`, which with you can write queries like: `gimme my muthaf*cking content from that muthaf*cking repository!!!` I might be joking, but again with the core point: _a string returns data_. Don't over-think this.)
+(Maybe someday, I will write `ISamuelLJacksonQueryProcessor`, which with you can write queries like: `gimme my muthaf*cking content from that muthaf*cking repository!!!` I might be joking, but again with the core point: _a string returns data_. Don't over-think this.)
 
 ## Content Labels
 

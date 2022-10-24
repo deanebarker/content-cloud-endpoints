@@ -1,4 +1,4 @@
-﻿namespace Alloy.Liquid.Endpoints.Processors
+﻿namespace DeaneBarker.Optimizely.Endpoints
 {
     public interface IQueryProcessor
     {

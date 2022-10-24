@@ -1,4 +1,5 @@
-﻿using Alloy.Liquid.Endpoints.Models;
+﻿using DeaneBarker.Optimizely.Endpoints.Models;
+using DeaneBarker.Optimizely.Endpoints.TreeQL;
 using EPiServer.Web.Mvc;
 using Fluid;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Optimizely.CMS.Labs.LiquidTemplating.Filters;
 using Optimizely.CMS.Labs.LiquidTemplating.Values;
 using Optimizely.CMS.Labs.LiquidTemplating.ViewEngine;
 
-namespace Alloy.Liquid.Endpoints.Controllers
+namespace DeaneBarker.Optimizely.Endpoints.Controllers
 {
     public class EndpointController : PageController<EndpointPage>
     {

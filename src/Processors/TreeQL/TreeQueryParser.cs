@@ -6,18 +6,17 @@ using System.Collections.Generic;
 using System.Linq;
 using static Parlot.Fluent.Parsers;
 
-namespace Alloy.Liquid.Endpoints.Processors.TreeQL
+namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
     public static class TreeQueryParser
     {
+
+        private static string commentPrefix = "#";
 
         private static Parser<TreeQuery> parser;
 
         public static TreeQuery Parse(string q, object data)
         {
-            // Remove lines that are commented
-            q = string.Join(' ', q.Split(Environment.NewLine).Where(l => !l.Trim().StartsWith("#"))).Trim();
-
             foreach (var property in data.GetType().GetProperties())
             {
                 var value = property.GetValue(data, null);
@@ -29,7 +28,21 @@ namespace Alloy.Liquid.Endpoints.Processors.TreeQL
 
         public static TreeQuery Parse(string q)
         {
-            return parser.Parse(q.ToLower().Trim());
+            q = Clean(q);
+            var query = parser.Parse(q);
+            query.Source = q;
+            return query;
+        }
+
+        private static string Clean(string input)
+        {
+            var lines = input.Split(new string[] { "\n", "\r\n", Environment.NewLine }, StringSplitOptions.None).AsQueryable();
+
+            lines = lines
+                .Where(l => !l.Trim().StartsWith(commentPrefix))
+                .Select(s => s.Trim());
+
+            return string.Join(" ", lines).ToLower().Trim(); 
         }
 
         static TreeQueryParser()
@@ -87,6 +100,8 @@ namespace Alloy.Liquid.Endpoints.Processors.TreeQL
             // Where clause
             var where = Terms.Text("where");
             var and = Terms.Text("and");
+            var or = Terms.Text("or");
+            var conjunction = OneOf(and, or);
             var fieldName = Terms.NonWhiteSpace();
             var contains = Terms.Text("contains");
             var lessThan = Terms.Text("<");
@@ -94,21 +109,22 @@ namespace Alloy.Liquid.Endpoints.Processors.TreeQL
             var greaterThan = Terms.Text(">");
             var notEqualTo = Terms.Text("!=");
             var value = Terms.String(StringLiteralQuotes.SingleOrDouble);
-            var whereClause = fieldName
-                .And(OneOf(contains, lessThan, equals, greaterThan, notEqualTo))
-                .And(value)
-                .AndSkip(ZeroOrOne(and))
+            var whereClause = ZeroOrOne(conjunction) // Item1
+                .And(fieldName) // Item2
+                .And(OneOf(contains, lessThan, equals, greaterThan, notEqualTo)) // Item3
+                .And(value) // Item4
                 .Then(v =>
                 {
-                    var fieldName = v.Item1.ToString().Split(':').First();
-                    var type = v.Item1.ToString().Contains(":") ? v.Item1.ToString().Split(':').Last() : "string";
+                    var fieldName = v.Item2.ToString().Split(':').First();
+                    var type = v.Item2.ToString().Contains(":") ? v.Item2.ToString().Split(':').Last() : "string";
 
                     return new Filter()
                     {
+                        Conjunction = v.Item1,
                         FieldName = fieldName,
                         Type = type,
-                        Operator = v.Item2.ToString(),
-                        Value = v.Item3.ToString()
+                        Operator = v.Item3.ToString(),
+                        Value = v.Item4.ToString()
                     };
                 });
 

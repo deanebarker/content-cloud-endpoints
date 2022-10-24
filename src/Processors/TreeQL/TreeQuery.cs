@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Alloy.Liquid.Endpoints.Processors.TreeQL
+namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
     public class TreeQuery
     {
@@ -11,6 +11,9 @@ namespace Alloy.Liquid.Endpoints.Processors.TreeQL
         public int Skip { get; set; }
         public string Tag { get; set; }
         public List<Filter> Filters { get; set; } = new List<Filter>();
+
+        // Just for debugguing
+        public string Source { get; set; }
     }
 
     public class Filter
@@ -19,6 +22,7 @@ namespace Alloy.Liquid.Endpoints.Processors.TreeQL
         public string Type { get; set; }
         public string Operator { get; set; }
         public string Value { get; set; }
+        public string Conjunction { get; set; }
     }
 
     public class Target

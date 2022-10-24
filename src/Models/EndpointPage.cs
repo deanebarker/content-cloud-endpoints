@@ -1,12 +1,10 @@
 ﻿using Alloy.Liquid.Liquid.Models.Blocks;
-using Alloy.Liquid.Models;
-using Alloy.Liquid.Models.Pages;
 using EPiServer.Shell.ObjectEditing;
 
-namespace Alloy.Liquid.Endpoints.Models
+namespace DeaneBarker.Optimizely.Endpoints.Models
 {
-    [SiteContentType(
-        GroupName = Globals.GroupNames.Specialized,
+    [ContentType(
+        GroupName = "Development",
         GUID = "AEECADB2-3E89-4117-ADEB-F8D43565D2F4",
         AvailableInEditMode = true,
         DisplayName = "Content Endpoint"
