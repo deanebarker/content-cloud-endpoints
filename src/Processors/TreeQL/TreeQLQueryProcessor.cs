@@ -29,6 +29,9 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             {
                 "children" => GetChildren(query.Target.Path).AsQueryable(),
                 "descendants" => GetDescendants(query.Target.Path).AsQueryable(),
+                "parent" => GetParent(query.Target.Path).AsQueryable(),
+                "ancestors" => GetAncestors(query.Target.Path).AsQueryable(),
+                "siblings" => GetSiblings(query.Target.Path).AsQueryable(),
                 _ => GetSelf(query.Target.Path).AsQueryable()
             };
 
@@ -70,11 +73,11 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             {
                 if (sort.Direction == SortDirection.Ascending)
                 {
-                    content = content.OrderBy(c => _contentValueProvider.GetValue((IContent)c, sort.Value));
+                    content = content.AppendOrderBy(c => _contentValueProvider.GetValue((IContent)c, sort.Value));
                 }
                 else
                 {
-                    content = content.OrderByDescending(c => _contentValueProvider.GetValue((IContent)c, sort.Value));
+                    content = content.AppendOrderByDescending(c => _contentValueProvider.GetValue((IContent)c, sort.Value));
                 }
             }
             
@@ -112,6 +115,25 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             return new List<ContentData>() { _loader.Get<ContentData>(GetReferenceFromTarget(path)) };
         }
 
+        public IEnumerable<ContentData> GetParent(string path)
+        {
+            var item = GetReferenceFromTarget(path);
+            return new List<ContentData>() { _loader.Get<ContentData>(_loader.Get<IContent>(item).ParentLink) };
+        }
+
+        public IEnumerable<ContentData> GetAncestors(string path)
+        {
+            var item = GetReferenceFromTarget(path);
+            return _loader.GetAncestors(item).Select(i => _loader.Get<ContentData>(i.ContentLink));
+        }
+
+        public IEnumerable<ContentData> GetSiblings(string path)
+        {
+            var item = GetReferenceFromTarget(path);
+            var parent = _loader.Get<IContent>(item).ParentLink;
+            return _loader.GetChildren<ContentData>(parent);
+        }
+
         private ContentReference GetReferenceFromTarget(string path)
         {
             // Content label
@@ -126,6 +148,12 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 
                 return pagesWithThisLabel.FirstOrDefault()?.ContentLink;
             };
+
+            // Content ID
+            if(path.All(c => char.IsDigit(c)))
+            {
+                return new ContentReference(int.Parse(path));
+            }
 
             // URL path
             var builder = new UrlBuilder(path);
@@ -161,5 +189,19 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             return Expression.Lambda<Func<T, bool>>
                   (Expression.AndAlso(expr1.Body, invokedExpr), expr1.Parameters);
         }
+    }
+
+    // From: https://stackoverflow.com/questions/13497255/programmatically-chain-orderby-thenby-using-linq-entity-framework/45486019#45486019
+    public static class QueryableExtensions
+    {
+        public static IOrderedQueryable<T> AppendOrderBy<T, TKey>(this IQueryable<T> query, Expression<Func<T, TKey>> keySelector)
+            => query.Expression.Type == typeof(IOrderedQueryable<T>)
+            ? ((IOrderedQueryable<T>)query).ThenBy(keySelector)
+            : query.OrderBy(keySelector);
+
+        public static IOrderedQueryable<T> AppendOrderByDescending<T, TKey>(this IQueryable<T> query, Expression<Func<T, TKey>> keySelector)
+            => query.Expression.Type == typeof(IOrderedQueryable<T>)
+                ? ((IOrderedQueryable<T>)query).ThenByDescending(keySelector)
+                : query.OrderByDescending(keySelector);
     }
 }
