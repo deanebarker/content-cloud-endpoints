@@ -1,5 +1,6 @@
 ﻿using EPiServer.Cms.Shell.UI.Reports.Internal.NotPublishedPages;
 using Org.BouncyCastle.Asn1.X509;
+using Parlot;
 using Parlot.Fluent;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,11 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
     public static class TreeQueryParser
     {
+
+        public static Func<TextSpan, bool> TargetValidator = (t) => { return true; }; // Validate anything by default
+        public static string TargetValidatorError = "Target must (1) begin and end with a forward slash, (2) be an integer, or (3) start with \"@\"";
+
+        public static string[] AllowedOperators = new[] { "=", "!=", ">", ">=", "<", "<=" };
 
         private static string commentPrefix = "#";
 
@@ -63,7 +69,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             });
 
             // Target	
-            var path = Terms.NonWhiteSpace().When(t => t.ToString().StartsWith("/") && t.ToString().EndsWith("/") || t.ToString().StartsWith("label"));
+            var path = Terms.NonWhiteSpace().When(t => TargetValidator(t));
             var inclusive = Terms.Text("inclusive");
             var exclusive = Terms.Text("exclusive");
             var target = path.And(ZeroOrOne(OneOf(inclusive, exclusive))).Then(v =>
@@ -111,7 +117,8 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             var value = Terms.String(StringLiteralQuotes.SingleOrDouble);
             var whereClause = ZeroOrOne(conjunction) // Item1
                 .And(fieldName) // Item2
-                .And(OneOf(contains, lessThan, equals, greaterThan, notEqualTo)) // Item3
+                //.And(Terms.NonWhiteSpace().When(t => AllowedOperators.Contains(t.ToString().Trim())).ElseError($"Allowed operators: {string.Join(", ", AllowedOperators)}")) // Item3
+                .And(OneOf(contains, lessThan, equals, greaterThan, notEqualTo))
                 .And(value) // Item4
                 .Then(v =>
                 {
@@ -133,7 +140,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
                 select.ElseError("Expected \"select\"")
                 .SkipAnd(scope) // Item 1
                 .AndSkip(of).ElseError("Expected \"of\"")
-                .And(target.ElseError("Expected a target. Target must begin and end with a forward slash: \"/\"")) // Item 2
+                .And(target.ElseError(TargetValidatorError)) // Item 2
                 .AndSkip(ZeroOrOne(where))
                 .And(ZeroOrMany(whereClause)) // Item 3
                 .AndSkip(ZeroOrOne(sortSeparator))
