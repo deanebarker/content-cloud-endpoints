@@ -16,6 +16,9 @@ namespace DeaneBarker.Optimizely
         {
             // This maps field names in TreeQL WHERE clauses to functions that return the values
 
+            map.Add("id", GetId);
+            map.Add("guid", GetId);
+
             map.Add("name", GetName);
             map.Add("title", GetName);
 
@@ -48,6 +51,16 @@ namespace DeaneBarker.Optimizely
             }
 
             return GetStringValue(content, field);
+        }
+
+        protected object GetId(IContent content, string field)
+        {
+            if(field == "guid")
+            {
+                return content.ContentGuid.ToString(); // ? should I turn this into a string?
+            }
+
+            return content.ContentLink.ID;
         }
 
         protected object GetName(IContent content, string field)
