@@ -1,0 +1,79 @@
+[1mdiff --git a/src/Models/EndpointPage.cs b/src/Models/EndpointPage.cs[m
+[1mindex e289f3c..1fdfb8b 100644[m
+[1m--- a/src/Models/EndpointPage.cs[m
+[1m+++ b/src/Models/EndpointPage.cs[m
+[36m@@ -1,5 +1,8 @@[m
+[31m-﻿using Alloy.Liquid.Liquid.Models.Blocks;[m
+[32m+[m[32m﻿using DeaneBarker.Optimizely.Endpoints.TreeQL;[m[41m[m
+ using EPiServer.Shell.ObjectEditing;[m
+[32m+[m[32musing Fluid;[m[41m[m
+[32m+[m[32musing Optimizely.CMS.Labs.LiquidTemplating.ViewEngine;[m[41m[m
+[32m+[m[32musing System.ComponentModel.DataAnnotations;[m[41m[m
+ [m
+ namespace DeaneBarker.Optimizely.Endpoints.Models[m
+ {[m
+[36m@@ -10,7 +13,7 @@[m [mnamespace DeaneBarker.Optimizely.Endpoints.Models[m
+         DisplayName = "Content Endpoint"[m
+         )[m
+     ][m
+[31m-    public class EndpointPage : PageData[m
+[32m+[m[32m    public class EndpointPage : PageData, IEndpoint[m[41m[m
+     {[m
+         [ClientEditor(ClientEditingClass = "/js/editor.js")][m
+         public virtual string Query { get; set; }[m
+[36m@@ -24,5 +27,55 @@[m [mnamespace DeaneBarker.Optimizely.Endpoints.Models[m
+             base.SetDefaultValues(contentType);[m
+             VisibleInMenu = false;[m
+         }[m
+[32m+[m[41m[m
+[32m+[m[32m        public string QuerySource => Query;[m[41m[m
+[32m+[m[32m        public IQueryProcessor QueryProcessor => new TreeQlQueryProcessor();[m[41m[m
+     }[m
+[32m+[m[41m[m
+[32m+[m[32m    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)][m[41m[m
+[32m+[m[32m    public class ValidateLiquidParse : ValidationAttribute[m[41m[m
+[32m+[m[32m    {[m[41m[m
+[32m+[m[32m        public ValidateLiquidParse()[m[41m[m
+[32m+[m[32m        {[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        public override bool IsValid(object value)[m[41m[m
+[32m+[m[32m        {[m[41m[m
+[32m+[m[32m            return GetParseException(value.ToString()) == null;[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        protected override ValidationResult IsValid(object value, ValidationContext validationContext)[m[41m[m
+[32m+[m[32m        {[m[41m[m
+[32m+[m[32m            if (string.IsNullOrWhiteSpace(value?.ToString()))[m[41m[m
+[32m+[m[32m            {[m[41m[m
+[32m+[m[32m                return ValidationResult.Success;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m            var message = GetParseException(value?.ToString());[m[41m[m
+[32m+[m[32m            if (message != null)[m[41m[m
+[32m+[m[32m            {[m[41m[m
+[32m+[m[32m                return new ValidationResult($"Liquid parse error: {message}");[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m            return ValidationResult.Success;[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m        private string GetParseException(string liquidCode)[m[41m[m
+[32m+[m[32m        {[m[41m[m
+[32m+[m[32m            var parser = new CmsFluidViewParser(new FluidParserOptions() { AllowFunctions = true });[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m            try[m[41m[m
+[32m+[m[32m            {[m[41m[m
+[32m+[m[32m                var template = parser.Parse(liquidCode);[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[32m            catch (Exception e)[m[41m[m
+[32m+[m[32m            {[m[41m[m
+[32m+[m[32m                return e.Message;[m[41m[m
+[32m+[m[32m            }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m            return null;[m[41m[m
+[32m+[m[32m        }[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+ }[m

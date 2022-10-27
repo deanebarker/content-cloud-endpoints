@@ -58,12 +58,13 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 
             // Scope
             var children = Terms.Text("children");
+            var results = Terms.Text("results");
             var parent = Terms.Text("parent");
             var descendants = Terms.Text("descendants");
             var ancestors = Terms.Text("ancestors");
             var self = Terms.Text("self");
             var siblings = Terms.Text("siblings");
-            var scope = ZeroOrOne(OneOf(parent, children, descendants, self, ancestors, siblings).ElseError("Expected scope")).Then(v =>
+            var scope = ZeroOrOne(OneOf(results, parent, children, descendants, self, ancestors, siblings).ElseError("Expected scope")).Then(v =>
             {
                 return v ?? "self";
             });

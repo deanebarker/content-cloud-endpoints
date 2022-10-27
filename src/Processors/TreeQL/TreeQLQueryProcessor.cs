@@ -1,11 +1,6 @@
-﻿using Castle.Components.DictionaryAdapter;
-using EPiServer.ServiceLocation;
+﻿using EPiServer.ServiceLocation;
 using EPiServer.Web.Routing;
-using System;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Net;
-using System.Runtime.Intrinsics.X86;
 
 namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
@@ -17,7 +12,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
         // This can be overriden with install-specific logic
         public static Func<IContent, string> ContentLabelProvider = GetContentLabel;
 
-        public object GetData(string input)
+        public object GetData(string input, IContent endpoint)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return null;
@@ -25,15 +20,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             var query = TreeQueryParser.Parse(input);
 
             // Get the base set of content to query
-            var content = query.Scope switch
-            {
-                "children" => GetChildren(query.Target.Path).AsQueryable(),
-                "descendants" => GetDescendants(query.Target.Path).AsQueryable(),
-                "parent" => GetParent(query.Target.Path).AsQueryable(),
-                "ancestors" => GetAncestors(query.Target.Path).AsQueryable(),
-                "siblings" => GetSiblings(query.Target.Path).AsQueryable(),
-                _ => GetSelf(query.Target.Path).AsQueryable()
-            };
+            var content = GetContentFromQuery(query, endpoint).AsQueryable();
 
             // Single filters are easy
             if(query.Filters.Count == 1)
@@ -93,6 +80,20 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             return content;
         }
 
+        public IEnumerable<ContentData> GetContentFromQuery(TreeQuery query, IContent endpoint)
+        {
+            return query switch
+            {
+                { Scope: "children" } => GetChildren(query.Target.Path),
+                { Scope: "descendants" } => GetDescendants(query.Target.Path),
+                { Scope: "parent" } => GetParent(query.Target.Path),
+                { Scope: "ancestors" } => GetAncestors(query.Target.Path),
+                { Scope: "siblings" } => GetSiblings(query.Target.Path),
+                { Scope: "results", Target.Path: "@parent" } => GetParentResults(query.Target.Path, endpoint),
+                _ => GetSelf(query.Target.Path)
+            };
+        }
+
         public IEnumerable<string> GetParseErrors(string query)
         {
             throw new NotImplementedException();
@@ -132,6 +133,15 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             var item = GetReferenceFromTarget(path);
             var parent = _loader.Get<IContent>(item).ParentLink;
             return _loader.GetChildren<ContentData>(parent);
+        }
+
+        public IEnumerable<ContentData> GetParentResults(string path, IContent endpoint)
+        {
+            var parent = _loader.Get<IContent>(endpoint.ParentLink);
+            var source = ((IEndpoint)parent).QuerySource;
+            var query = TreeQueryParser.Parse(source);
+
+            return GetContentFromQuery(query, parent);
         }
 
         private ContentReference GetReferenceFromTarget(string path)

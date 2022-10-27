@@ -11,8 +11,6 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
 {
     public class EndpointController : PageController<EndpointPage>
     {
-        private IQueryProcessor _processor = new TreeQlQueryProcessor();
-
         public ActionResult Index(EndpointPage endpoint)
         {
             var query = endpoint.Query;
@@ -21,7 +19,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
             // So, right now we return a collection of items
             // But, theoretically, we don't have to
             // Leaving this at just an object for now. Might change it later
-            var model = (IEnumerable<ContentData>)_processor.GetData(query);
+            var model = (IEnumerable<ContentData>)((IEndpoint)endpoint).QueryProcessor.GetData(query, endpoint);
 
             if (string.IsNullOrWhiteSpace(liquid))
             {
