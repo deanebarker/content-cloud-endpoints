@@ -11,19 +11,26 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
 {
     public class EndpointController : PageController<EndpointPage>
     {
-        public ActionResult Index(EndpointPage endpoint)
+        public ActionResult Index(IContent currentPage)
         {
-            var query = endpoint.Query;
-            var liquid = endpoint.Template;
+            var endpoint = currentPage as IEndpoint;
+            if(endpoint == null)
+            {
+                // No idea how this might happen...
+                throw new ArgumentException("Current page is not IEndpoint");
+            }
+
+            var query = endpoint.QuerySource;
+            var template = endpoint.TemplateSource;
 
             // So, right now we return a collection of items
             // But, theoretically, we don't have to
             // Leaving this at just an object for now. Might change it later
-            var model = (IEnumerable<ContentData>)((IEndpoint)endpoint).QueryProcessor.GetData(query, endpoint);
+            var model = endpoint.QueryProcessor.GetData(query, (IContent)endpoint); // WTF? Why do I pass this into itself?
 
-            if (string.IsNullOrWhiteSpace(liquid))
+            if (string.IsNullOrWhiteSpace(template))
             {
-                return Json(model.Select(c => getSimplifiedObject((IContent)c)));
+                return Json(((IEnumerable<ContentData>)model).Select(c => getSimplifiedObject((IContent)c)));
 
                 // This needs to get replaced with the RIGHT way to do this
                 // 2022-10-21: email into Aniel and Magnus
@@ -38,34 +45,12 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
 
             }
 
-            TemplateOptions.Default.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
-            var parser = new CmsFluidViewParser(new FluidParserOptions() { AllowFunctions = true });
-
-            // It should be guaranteed of parsing because it passed validation to get to this point.
-            var template = parser.Parse(liquid);
-
-            // See notes below. Context models are weird ojn MVC installs
-            var context = new TemplateContext(new SebIsWrong() { Model = model });
-            context.Options.Filters.WithUrlFilters();
-            context.SetValue("ContentLoader", new ContentLoaderValue());
-
-            var result = string.Empty;
-            var statusCode = 200;
-
-            try
-            {
-                result = template.Render(context);
-            }
-            catch(Exception e)
-            {
-                result = "Error: " + e.Message;
-                statusCode = 500;
-            }
+            var result = endpoint.Transformer.Transform(template, model);
 
             return new ContentResult()
             {
                 Content = result,
-                StatusCode = statusCode,
+                StatusCode = 200,
                 ContentType = "text/html"
             };
         }

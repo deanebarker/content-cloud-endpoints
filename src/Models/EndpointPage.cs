@@ -1,4 +1,5 @@
-﻿using DeaneBarker.Optimizely.Endpoints.TreeQL;
+﻿using DeaneBarker.Optimizely.Endpoints.Transformers;
+using DeaneBarker.Optimizely.Endpoints.TreeQL;
 using EPiServer.Shell.ObjectEditing;
 using Fluid;
 using Optimizely.CMS.Labs.LiquidTemplating.ViewEngine;
@@ -30,6 +31,8 @@ namespace DeaneBarker.Optimizely.Endpoints.Models
 
         public string QuerySource => Query;
         public IQueryProcessor QueryProcessor => new TreeQlQueryProcessor();
+        public string TemplateSource => Template;
+        public ITransformer Transformer => new LiquidTemplater();
     }
 
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
