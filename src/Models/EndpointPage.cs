@@ -24,7 +24,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Models
         public ITransformer Transformer => EndpointOptions.Transformers.GetValueOrDefault(TransformerName) ?? new LiquidTemplater();
 
 
-
+        [Required]
         [Display(Name = "Query Processor", GroupName = "Data Configuration", Order = 100)]
         [SelectOne(SelectionFactoryType = typeof(ProcessorSelectionFactory))]
         public virtual string QueryProcessorName { get; set; }
@@ -34,7 +34,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Models
         [ClientEditor(ClientEditingClass = "/js/editor.js")]
         public virtual string Query { get; set; }
 
-
+        [Required]
         [Display(Name = "Transformer", GroupName = "Data Configuration", Order = 300)]
         [SelectOne(SelectionFactoryType = typeof(TransformerSelectionFactory))]
         public virtual string TransformerName { get; set; }
@@ -78,7 +78,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Models
             var errors = new List<ValidationError>();
 
             errors.AddRange(endpoint.QueryProcessor.GetParseErrors(endpoint.QuerySource) ?? Enumerable.Empty<ValidationError>());
-            errors.AddRange(endpoint.Transformer.GetParseErrors(endpoint.QuerySource) ?? Enumerable.Empty<ValidationError>());
+            errors.AddRange(endpoint.Transformer.GetParseErrors(endpoint.TemplateSource) ?? Enumerable.Empty<ValidationError>());
 
             return errors;
         }
