@@ -40,6 +40,7 @@ namespace DeaneBarker.Optimizely.Endpoints
             EndpointOptions.Processors.Add("Content QL", new TreeQlQueryProcessor());
 
             EndpointOptions.Transformers.Add("Serialized JSON", new SerializedJson());
+            EndpointOptions.Transformers.Add("Templated JSON", new JsonTemplate());
             EndpointOptions.Transformers.Add("Liquid", new LiquidTemplater());
         }
 
