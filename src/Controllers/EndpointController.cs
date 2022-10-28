@@ -11,7 +11,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
 {
     public class EndpointController : PageController<EndpointPage>
     {
-        public ActionResult Index(IContent currentPage)
+        public string Index(IContent currentPage)
         {
             var endpoint = currentPage as IEndpoint;
             if(endpoint == null)
@@ -28,31 +28,34 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
             // Leaving this at just an object for now. Might change it later
             var model = endpoint.QueryProcessor.GetData(query, (IContent)endpoint); // WTF? Why do I pass this into itself?
 
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                return Json(((IEnumerable<ContentData>)model).Select(c => getSimplifiedObject((IContent)c)));
-
-                // This needs to get replaced with the RIGHT way to do this
-                // 2022-10-21: email into Aniel and Magnus
-                object getSimplifiedObject(IContent content)
-                {
-                    return new
-                    {
-                        name = content.Name,
-                        contentLink = content.ContentLink
-                    };
-                }
-
-            }
-
             var result = endpoint.Transformer.Transform(template, model);
 
-            return new ContentResult()
-            {
-                Content = result,
-                StatusCode = 200,
-                ContentType = "text/html"
-            };
+            Response.StatusCode = 200;
+            Response.ContentType = GetContentType(result);
+
+            return result;
+        }
+
+
+        private string GetContentType(string source)
+        {
+            // This is probably bad...
+            source = source.Trim();
+
+            // Okay, this SHOULD work, but out of nowhere, the server started returning 406 errors whenever the content was anything other than "text/plan"
+            // I need to investigate this
+
+            //if(source.StartsWith("<"))
+            //{
+            //    return "text/html";
+            //}
+
+            //if(source.StartsWith("[") || source.StartsWith("{"))
+            //{
+            //    return "application/json";
+            //}
+
+            return "text/plain";
         }
     }
 

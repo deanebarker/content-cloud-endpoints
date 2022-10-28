@@ -1,4 +1,6 @@
-﻿using DeaneBarker.Optimizely.Endpoints.TreeQL;
+﻿using DeaneBarker.Optimizely.Endpoints.Processoers;
+using DeaneBarker.Optimizely.Endpoints.Transformers;
+using DeaneBarker.Optimizely.Endpoints.TreeQL;
 using EPiServer.Framework;
 using EPiServer.Framework.Initialization;
 using EPiServer.ServiceLocation;
@@ -32,6 +34,13 @@ namespace DeaneBarker.Optimizely.Endpoints
             };
 
             TreeQueryParser.AllowedOperators = new[] { "=", "!=", ">", ">=", "<", "<=", "contains", "startswith", "starts", "endswith", "ends" };
+
+            // This is wrong. I need to use the right pattern
+            EndpointOptions.Processors.Add("Teenager QL", new TeenagerQL());
+            EndpointOptions.Processors.Add("Content QL", new TreeQlQueryProcessor());
+
+            EndpointOptions.Transformers.Add("Serialized JSON", new SerializedJson());
+            EndpointOptions.Transformers.Add("Liquid", new LiquidTemplater());
         }
 
         public void Uninitialize(InitializationEngine context)

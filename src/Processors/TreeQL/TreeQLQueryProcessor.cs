@@ -1,5 +1,7 @@
 ﻿using EPiServer.ServiceLocation;
+using EPiServer.Validation;
 using EPiServer.Web.Routing;
+using Fluid;
 using System.Linq.Expressions;
 
 namespace DeaneBarker.Optimizely.Endpoints.TreeQL
@@ -94,9 +96,27 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
             };
         }
 
-        public IEnumerable<string> GetParseErrors(string query)
+        public IEnumerable<ValidationError> GetParseErrors(string query)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _ = TreeQueryParser.Parse(query); // We don't actually care what comes back, we just want to see if we get an exception...
+            }
+            catch (Exception e)
+            {
+                return new List<ValidationError>()
+                {
+                    new ValidationError()
+                    {
+                        ErrorMessage = e.Message,
+                        PropertyName = "Query",
+                        Severity = ValidationErrorSeverity.Error,
+                        ValidationType = ValidationErrorType.PropertyValidation
+                    }
+                };
+            }
+
+            return null;
         }
 
         public IEnumerable<ContentData> GetChildren(string path)
