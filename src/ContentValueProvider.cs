@@ -41,6 +41,13 @@ namespace DeaneBarker.Optimizely
             map.Add("order", GetSortIndex);
 
             map.Add("url", GetUrl);
+
+            map.Add("parent", GetParentId);
+            map.Add("parent_id", GetParentId);
+
+            map.Add("categories", GetCategories);
+            map.Add("category_ids", GetCategories);
+            map.Add("category_names", GetCategories);
         }
 
         public object GetValue(IContent content, string field)
@@ -51,6 +58,11 @@ namespace DeaneBarker.Optimizely
             }
 
             return GetStringValue(content, field);
+        }
+
+        public bool FieldExists(string fieldName)
+        {
+            return map.ContainsKey(fieldName);
         }
 
         protected object GetId(IContent content, string field)
@@ -120,6 +132,13 @@ namespace DeaneBarker.Optimizely
             return _loader.GetAncestors(content.ContentLink).Count();
         }
 
+
+        protected object GetParentId(IContent content, string field)
+        {
+            return content.ParentLink.ID;
+        }
+
+
         protected object GetSortIndex(IContent content, string field)
         {
             if (!(content is PageData))
@@ -133,6 +152,19 @@ namespace DeaneBarker.Optimizely
         protected object GetType(IContent content, string field)
         {
             return _typeRepo.Load(content.ContentTypeID).Name;
+        }
+
+        protected object GetCategories(IContent content, string field)
+        {
+            var categories = (CategoryList)content.Property["PageCategory"].Value;
+
+            if(field == "category_names")
+            {
+                var categoryRepo = ServiceLocator.Current.GetInstance<CategoryRepository>();
+                return categories.Select(c => categoryRepo.Get(c).Description);
+            }
+
+            return categories;
         }
     }
 }
