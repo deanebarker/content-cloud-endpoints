@@ -10,6 +10,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
     {
         private IContentLoader _loader = ServiceLocator.Current.GetInstance<IContentLoader>();
         private static IContentValueProvider _contentValueProvider = ServiceLocator.Current.GetInstance<IContentValueProvider>();
+        private static ILabelProvider _labelProvider = ServiceLocator.Current.GetInstance<ILabelProvider>();
 
         // This can be overriden with install-specific logic
         public static Func<IContent, string> ContentLabelProvider = GetContentLabel;
@@ -167,16 +168,10 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
         private ContentReference GetReferenceFromTarget(string path)
         {
             // Content label
-            if (path.StartsWith("label:"))
+            if (path.StartsWith("@"))
             {
-                // Broken out for debugging
-                path = path.Split(":").Last();
-                var pages = _loader.GetDescendents(ContentReference.StartPage)
-                    .Select(p => _loader.Get<PageData>(p));
-                var pagesWithLabel = pages.Where(p => ContentLabelProvider(p) != null);
-                var pagesWithThisLabel = pagesWithLabel.Where(p => ContentLabelProvider(p) == path.ToLower().Trim());
-
-                return pagesWithThisLabel.FirstOrDefault()?.ContentLink;
+                path = path.Substring(1);
+                return _labelProvider.GetContentForLabel(path);
             };
 
             // Content ID
