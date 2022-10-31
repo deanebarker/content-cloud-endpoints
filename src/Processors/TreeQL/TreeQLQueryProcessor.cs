@@ -85,16 +85,23 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 
         public IEnumerable<ContentData> GetContentFromQuery(TreeQuery query, IContent endpoint)
         {
-            return query switch
+            var content = new List<ContentData>();
+
+            foreach (var target in query.Targets)
             {
-                { Scope: "children" } => GetChildren(query.Target.Path),
-                { Scope: "descendants" } => GetDescendants(query.Target.Path),
-                { Scope: "parent" } => GetParent(query.Target.Path),
-                { Scope: "ancestors" } => GetAncestors(query.Target.Path),
-                { Scope: "siblings" } => GetSiblings(query.Target.Path),
-                { Scope: "results", Target.Path: "@parent" } => GetParentResults(query.Target.Path, endpoint),
-                _ => GetSelf(query.Target.Path)
-            };
+                content.AddRange(target switch
+                {
+                    { Scope: "children" } => GetChildren(target.Path),
+                    { Scope: "descendants" } => GetDescendants(target.Path),
+                    { Scope: "parent" } => GetParent(target.Path),
+                    { Scope: "ancestors" } => GetAncestors(target.Path),
+                    { Scope: "siblings" } => GetSiblings(target.Path),
+                    { Scope: "results", Path: "@parent" } => GetParentResults(target.Path, endpoint),
+                    _ => GetSelf(target.Path)
+                });
+            }
+
+            return content.Distinct();
         }
 
         public IEnumerable<ValidationError> GetParseErrors(string query)

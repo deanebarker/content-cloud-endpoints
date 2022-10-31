@@ -4,8 +4,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
     public class TreeQuery
     {
-        public string Scope { get; set; }
-        public Target Target { get; set; }
+        public List<Target> Targets { get; set; } = new List<Target>();
         public List<Sort> Sort { get; set; } = new List<Sort>();
         public long Limit { get; set; }
         public int Skip { get; set; }
@@ -27,6 +26,7 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 
     public class Target
     {
+        public string Scope { get; set; }
         public string Path { get; set; }
         public bool Inclusive { get; set; } // Whether or not the include the target
     }
