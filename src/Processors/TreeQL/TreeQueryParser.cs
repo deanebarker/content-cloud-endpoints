@@ -34,6 +34,11 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 
         public static TreeQuery Parse(string q)
         {
+            if(string.IsNullOrWhiteSpace(q))
+            {
+                return new TreeQuery();
+            }
+
             q = Clean(q);
             var query = parser.Parse(q);
             query.Source = q;
