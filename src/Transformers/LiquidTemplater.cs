@@ -18,7 +18,7 @@ namespace DeaneBarker.Optimizely.Endpoints.Transformers
             var template = parser.Parse(source ?? string.Empty);
 
             // See notes below. Context models are weird ojn MVC installs
-            var context = new TemplateContext(new SebIsWrong() { Model = model });
+            var context = new TemplateContext(new { model });
             context.Options.Filters.WithUrlFilters();
             context.SetValue("ContentLoader", new ContentLoaderValue());
 
@@ -49,5 +49,12 @@ namespace DeaneBarker.Optimizely.Endpoints.Transformers
 
             return null;
         }
+    }
+
+    // This is the result of a long conversation I had with Sebastian.
+    // I still don't quite understand it, but models are weird with MVC installs
+    public class SebIsWrong
+    {
+        public object model { get; set; }
     }
 }
