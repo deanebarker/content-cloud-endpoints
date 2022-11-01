@@ -33,11 +33,22 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
             var model = endpoint.QueryProcessor.GetData(query, (IContent)endpoint); // WTF? Why do I pass this into itself?
             var queryTime = sw.ElapsedMilliseconds;
 
+            var result = string.Empty;
+            var statusCode = 200;
+
             sw.Restart();
-            var result = endpoint.Transformer.Transform(template, model);
+            try
+            {
+                result = endpoint.Transformer.Transform(template, model);
+            }
+            catch(Exception e)
+            {
+                result = $"TRANSFORMATION ERROR: {e.Message}" + Environment.NewLine + e.StackTrace;
+                statusCode = 500;
+            }
             var transformTime = sw.ElapsedMilliseconds;
 
-            Response.StatusCode = 200;
+            Response.StatusCode = statusCode;
             Response.ContentType = GetContentType(result);
 
             Response.Headers.Add("x-query-time", $"{queryTime}ms");
@@ -67,12 +78,5 @@ namespace DeaneBarker.Optimizely.Endpoints.Controllers
 
             return "text/plain";
         }
-    }
-
-    // This is the result of a long conversation I had with Sebastian.
-    // I still don't quite understand it, but models are weird with MVC installs
-    public class SebIsWrong
-    {
-        public object Model { get; set; }
     }
 }
