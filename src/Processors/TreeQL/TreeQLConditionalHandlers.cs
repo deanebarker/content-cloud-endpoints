@@ -1,6 +1,7 @@
 ﻿using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using EPiServer.ServiceLocation;
 using System.Diagnostics.Eventing.Reader;
+using DeaneBarker.TreeQL;
 
 namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
