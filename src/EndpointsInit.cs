@@ -10,6 +10,7 @@ using Fluid.Values;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Encodings.Web;
+using DeaneBarker.TreeQL;
 
 namespace DeaneBarker.Optimizely.Endpoints
 {
@@ -39,6 +40,8 @@ namespace DeaneBarker.Optimizely.Endpoints
                 return false;
             };
 
+
+            TreeQueryParser.TargetValidatorError = "Target must (1) begin and end with a forward slash, (2) be an integer, or (3) start with \"@\"";
             TreeQueryParser.AllowedOperators = new[] { "=", "!=", ">", ">=", "<", "<=", "contains", "startswith", "starts", "endswith", "ends" };
 
             // This is wrong. I need to use the right pattern
