@@ -3,6 +3,7 @@ using EPiServer.Validation;
 using EPiServer.Web.Routing;
 using Fluid;
 using System.Linq.Expressions;
+using DeaneBarker.TreeQL;
 
 namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
@@ -87,17 +88,17 @@ namespace DeaneBarker.Optimizely.Endpoints.TreeQL
         {
             var content = new List<ContentData>();
 
-            foreach (var target in query.Targets)
+            foreach (var source in query.Sources)
             {
-                content.AddRange(target switch
+                content.AddRange(source switch
                 {
-                    { Scope: "children" } => GetChildren(target.Path),
-                    { Scope: "descendants" } => GetDescendants(target.Path),
-                    { Scope: "parent" } => GetParent(target.Path),
-                    { Scope: "ancestors" } => GetAncestors(target.Path),
-                    { Scope: "siblings" } => GetSiblings(target.Path),
-                    { Scope: "results", Path: "@parent" } => GetParentResults(target.Path, endpoint),
-                    _ => GetSelf(target.Path)
+                    { Scope: "children" } => GetChildren(source.Target),
+                    { Scope: "descendants" } => GetDescendants(source.Target),
+                    { Scope: "parent" } => GetParent(source.Target),
+                    { Scope: "ancestors" } => GetAncestors(source.Target),
+                    { Scope: "siblings" } => GetSiblings(source.Target),
+                    { Scope: "results", Target: "@parent" } => GetParentResults(source.Target, endpoint),
+                    _ => GetSelf(source.Target)
                 });
             }
 
