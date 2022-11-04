@@ -7,6 +7,9 @@ using DeaneBarker.TreeQL;
 
 namespace DeaneBarker.Optimizely.Endpoints.TreeQL
 {
+    // This requires the TreeQueryParser.cs file from: 
+    // https://github.com/deanebarker/treeql-parser/blob/main/src/TreeQueryParser.cs
+
     public class TreeQlQueryProcessor : IQueryProcessor
     {
         private IContentLoader _loader = ServiceLocator.Current.GetInstance<IContentLoader>();
